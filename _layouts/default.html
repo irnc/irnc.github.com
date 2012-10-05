@@ -40,7 +40,13 @@
     <!-- FOOTER  -->
     <div id="footer_wrap" class="outer">
       <footer class="inner">
-        <p>go to <a href="/">Home page</a> to see other posts</p>
+        <p>
+          {% if page.home_page %}
+            streams: <a href="https://plus.google.com/u/0/100995920601299896820/posts">my Google+ profile</a>
+          {% else %}
+            go to <a href="/">Home page</a> to see other posts
+          {% endif %}
+        </p>
       </footer>
     </div>
 
