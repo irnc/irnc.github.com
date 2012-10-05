@@ -8,4 +8,6 @@ push this repository to GitHub.
 This file and all others in this repository using the .md extension are coded
 in the [Markdown syntax](http://daringfireball.net/projects/markdown/syntax).
 
-Site is published with [GitHub Pages](http://pages.github.com).
+Site is published with [GitHub Pages][] at http://irnc.github.com.
+
+[GitHub Pages]: http://pages.github.com
