@@ -59,6 +59,10 @@ title: Overview of Derby's internals
     up workers is created no requests will be unprocessed because `listen` is
     asynchronous.
 
+    Open question: this method requires *server module* just for check of it's
+    exports and does not use it after it. Is this require intended and serves
+    some purpose other then exports check or not?
+
     ### function createApp(appModule)
 
     * merges in EventEmitter's prototype to app's module exports, thus making
@@ -255,6 +259,72 @@ title: Overview of Derby's internals
 *   ## markup.js
 
     Defines parsers for Derby's template markup. Module is used by View.js
+
+*   ## Dom.js
+
+    Exports Dom constructor. Used only by `derby.browser` module, thus it's API
+    is available only in browser context.
+
+    Implementations of an `addListener` and `removeListener` functions are
+    defined upon module evaluation, based on browser support of DOM API.
+    For browsers supporting only `document.attachEvent`, `addListener` will
+    wrap attached callback into additional function in order to normalize event
+    object by correctly setting the `target` property so the callback can work
+    with the event object in a browser-agnostic way.
+
+    ### Dom(model)
+
+    Creates two distinctive EventDispatcher objects and stores them into
+    `_events` and `_captureEvents` properties.
+
+    Adds four methods with privileged access: trigger, captureTrigger,
+    addListener and removeListener.
+
+    Stores empty arrays to `_componentListeners` and `_pendingUpdates`
+    properties.
+
+*   ## EventDispatcher.js
+
+    Exports EventDispatcher constructor.
+
+    ### EventDispatcher(options)
+
+    Create an object from the prototype which has `clear`, `bind` and `trigger`
+    methods.
+
+    Callbacks which will be called on each invocation of `bind` and `trigger`
+    can be specified via `options.onBind` and `options.onTrigger`.
+
+    ### clear()
+
+    Sets `names` property to an empty object.
+
+    ### bind(name, listener, arg0)
+
+    Calls `onBind` callback passing in all arguments intact. And stores
+    `listener` to `names` property.
+
+    Thus `names` is a data structure of the following format:
+
+        { "click": {
+            "listener-as-a-string": Function
+          , "another-listener-as-a-string": Function
+          }
+        , "focus": {
+            ...
+          }
+        }
+
+    Where *listener as a string* is a JSON serialization of a `listener`
+    function created using `JSON.stringify(listener)`.
+
+    Open question: why JSON-serialized listener is used as a property name?
+
+    Returns object with listeners, i.e. `this.names[name]`.
+
+    ### trigger(name, value, arg0, arg1, arg2, arg3, arg4, arg5)
+
+    TODO
 
 # Core application modules
 
