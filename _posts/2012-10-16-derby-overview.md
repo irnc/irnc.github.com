@@ -38,22 +38,26 @@ title: Overview of Derby's internals
 
     ### function run (file, port, options)
 
-    **file** parameter is a path (String) pointing to a file with an
-    *application server module*.
+    **file** string retresenting a path to a file with a *server module*.
 
-    **port** parameter specifies port number on which master HTTP server will
-    be listening.
+    **port** number on which master HTTP server will be listening.
 
-    **options** is an options object passed to the 'up' npm mpdule with
-    possible properties as follows:
+    **options** object passed to the UpServer constructor. For available
+    options see [up's README][up-github]. If parameter is not set, Derby
+    defaults to `{ numWorkers: 1 }`.
 
-    * numWorkers {Number} defaults to 1
+    This method creates the master HTTP server and uses the [up][up-github]
+    package to start a cluster of a specified number of workers which will
+    actually handle requests.
 
-    This method creates the master HTTP server and starts cluster with a
-    specified number of workers using the 'up' npm module.
+    Each worker is a separate node.js process which requests *server module*
+    and binds it to a randomly assigned port. This port will be send to the up
+    service when server starts listening on it. For details see
+    `up/lib/worker.js` and http://nodejs.org/api/net.html#net_server_address.
 
-    Note: master HTTP server starts listening on port even before the up cluster
-    is created.
+    Note: although `listen` method is called on master HTTP server before the
+    up workers is created no requests will be unprocessed because `listen` is
+    asynchronous.
 
     ### function createApp(appModule)
 
@@ -267,7 +271,9 @@ title: Overview of Derby's internals
     express application and includes Connect middleware.
 
     *Server module* must export an instance of http.Server. Otherwise call to
-    `derby.run` will throw an error.
+    `derby.run` will throw an error. Such structure of code is required to use
+    [up][up-github] package to service live code reloads, see it's README for
+    details.
 
 *   lib/app
 
@@ -282,6 +288,13 @@ title: Overview of Derby's internals
     function run() inside the `lib/derby.server` module.
 
 # Notes about external dependencies
+
+## up
+
+[Up][up-github] module is described as *Zero downtime reloads for Node HTTP(S)
+servers*.
+
+[up-github]: https://github.com/learnboost/up
 
 ## browserify
 
