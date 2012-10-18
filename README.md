@@ -11,3 +11,7 @@ in the [Markdown syntax](http://daringfireball.net/projects/markdown/syntax).
 Site is published with [GitHub Pages][] at http://irnc.github.com.
 
 [GitHub Pages]: http://pages.github.com
+
+## How to preview site locally
+
+`jekyll --auto --server`
