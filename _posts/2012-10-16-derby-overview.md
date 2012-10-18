@@ -18,9 +18,12 @@ title: Overview of Derby's internals
 
 *   ## component.js
 
-    Exports *component plugin* which is designed to decorates `derby` object.
-    This plugin adds `createLibrary(config, options)` function to `derby`
-    object.
+    Exports *component plugin* which is designed to decorate `derby` object.
+    This plugin adds `createLibrary(config, options)` method and `_libraries`
+    property to `derby` object.
+
+    `_libraries` is initialized as an empty Array, with `map` property as an
+    empty object.
 
     TODO: describe what `createLibrary()` function does.
 
@@ -30,15 +33,13 @@ title: Overview of Derby's internals
     designed to decorate `derby` pluggable object with different implementations
     for server and browser environments respectively.
 
-    In node.js environment plugin adds run(), createApp() and createStatic()
+    In server context plugin adds run(), createApp() and createStatic()
     methods to derby object.
 
     ### function run (file, port, options)
 
-    **file** parameter is a path (String) pointing to a file with actual server
-    functionality, i.e. creation of a HTTP server, express application
-    initialization and middleware inclusion. Module defined in *file* must
-    export an instance of http.Server.
+    **file** parameter is a path (String) pointing to a file with an
+    *application server module*.
 
     **port** parameter specifies port number on which master HTTP server will
     be listening.
@@ -51,17 +52,22 @@ title: Overview of Derby's internals
     This method creates the master HTTP server and starts cluster with a
     specified number of workers using the 'up' npm module.
 
+    Note: master HTTP server starts listening on port even before the up cluster
+    is created.
+
     ### function createApp(appModule)
 
     * merges in EventEmitter's prototype to app's module exports, thus making
       the *application object* an event emitter/listener;
     * creates *view object* passing in libraries array from *component plugin*
-      and *application object* to View constructor;
+      and *application object* to View constructor exported from ./View.server
+      module;
     * exposes derby.settions property to view object via view._derbySettings;
       view also given access to appModule.filename via _appFilename;
     * sets application.{routes,view,ready,render} properties;
     * calls view.render() without parameters on the next tick so that files
-      will be cached for the first render.
+      will be cached for the first render (note that view.render()
+      implementation differs in server and browser contexts).
 
 *   ## derby.browser.js
 
@@ -105,6 +111,20 @@ title: Overview of Derby's internals
 *   ## View.js
 
     Module exports View object constructor.
+
+    ### View(libraries, application)
+
+    Stores passed in libraries array into `view._libraries` and *application
+    object* into `view._appExports` property.
+
+    ### inline
+
+    Each View object, either in browser or server has `inline` method and
+    `_inline` property initialized to empty string by constructor.
+
+    In browser context `inline` is an empty function and `_inline` property is
+    never used. See description of the View.server module about implementation
+    of the `inline` method used in server context.
 
     ### view.render(model, ns, ctx, silent)
 
@@ -152,6 +172,77 @@ title: Overview of Derby's internals
     e.g. if ns is set to 'x:y:z' and name is 't', lookup will be done for those
     properties in the order specified: 'x:y:z:t', 'x:y:t', 'x:t', 't'.
 
+    ### ctx = view._beforeRender(ns, ctx)
+
+    Create context object if it is not set, store *ns* to `ctx.$ns`
+
+    Emits 'pre:render' event on application object with context object as a
+    parameter. If `ns` evaluates to TRUE, also emits 'pre:render:*ns*' event
+    with the same context object as a parameter.
+
+*   ## View.server.js
+
+    Exports View module constuctor but changes it's prototype by adding isServer
+    property set to TRUE and overriding some methods, namely inline and render,
+    while adding a bunch of utility methods.
+
+    ### inline
+
+    The `inline(fn)` method casts passed in function to string, wraps it into an
+    *immediate invocation* pattern and appends it to the `_inline` proterty,
+    meaning that it contains pure JavaScript code, without `<script>` tags.
+
+    In a production environment, string representation of a script to inline is
+    uglified by uglify-js required from racer's node_modules directory.
+
+    ### view.render(res, model, ctx, ns, resStatusCode, isStatic)
+
+    *res* parameter is used to pass in response object, if not set it will be
+    mocked by *empty response object*.
+
+    *model* must be an instance of `racer["protected"].Model` otherwise empty
+    model object will be used with empty `_commit` and `bundle` methods.
+
+    Rest of the arguments will be assumed to be undefined unless they match the
+    criteria:
+
+    * ctx is of type object
+    * ns is of type string
+    * resStatusCode is of type number
+    * isStatic is of type boolean
+
+    After that arguments normalization view.render will call
+
+    ctx = this._beforeRender(ns, ctx); // defined in the View module
+
+    this._init(model, isStatic, function() { // defined in View.server module
+      view._render(res, model, ns, ctx, isStatic);
+    });
+
+    view._init method calls view._load and when it will be calling back, code
+    in _init will partially mock model with empty implementations and call
+    view._initValues(model) and callback().
+
+    #### view._init
+
+    This method is called only from `render` method.
+
+    #### view._load
+
+    This method is called only from `_init` method.
+
+    In a production environment, this method will set view._watch to FALSE and
+    override itself with a function which just calling callback. While in
+    non-production environtent only `_watch` propery will be set to TRUE.
+
+    After this actual loading will be performed.
+
+    #### view._initValues(model)
+
+    Will set view.model to model, and reset view._idCount to 0. After this, all
+    libraries are iterated and `library.view._initValues(model)` is called on
+    each.
+
 *   ## eventBinding.js
 
     Parses x-bind definition and adds events to the DOM. Module is used by
@@ -165,12 +256,18 @@ title: Overview of Derby's internals
 
 *   server
 
-    The sole responsibility of this module is to call derby.run('lib/server')
-    thus delegating work for it.
+    The sole responsibility of this module is to call derby.run('lib/server'),
+    i.e. running Derby and delegating all work to the *server module*.
 
 *   lib/server
 
-    TODO
+    This module is called the *server module*.
+
+    It creates a HTTP server (without listening on port), initializes an
+    express application and includes Connect middleware.
+
+    *Server module* must export an instance of http.Server. Otherwise call to
+    `derby.run` will throw an error.
 
 *   lib/app
 
