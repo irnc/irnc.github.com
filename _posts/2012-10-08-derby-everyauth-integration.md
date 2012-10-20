@@ -1,6 +1,6 @@
 ---
 layout: post
-title: [TODO] Using everyauth in Derby applications
+title: TODO Using everyauth in Derby applications
 ---
 
 # Current status of authentication in Derby

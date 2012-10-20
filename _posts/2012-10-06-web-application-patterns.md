@@ -1,6 +1,6 @@
 ---
 layout: post
-title: [TODO] Pattern applied to Web application
+title: TODO Pattern applied to Web application
 ---
 
 # Model-View-Controller (MVC) pattern

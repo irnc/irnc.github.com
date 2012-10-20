@@ -1,6 +1,6 @@
 ---
 layout: post
-title: [TODO] Model security in Derby framework
+title: Model security in Derby framework
 ---
 
 On April 25, 2012 [an issue][issue #47] about security has been raised: Derby
