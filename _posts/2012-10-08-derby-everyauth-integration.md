@@ -1,3 +1,8 @@
+---
+layout: post
+title: [TODO] Using everyauth in Derby applications
+---
+
 # Current status of authentication in Derby
 
 On August 24, 2012 Nate Smith told "Auth is basically done and integrated with
