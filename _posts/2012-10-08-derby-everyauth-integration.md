@@ -7,7 +7,7 @@ title: TODO Using everyauth in Derby applications
 
 On August 24, 2012 Nate Smith told "Auth is basically done and integrated with
 Everyauth. We just don't have an example yet. I'm kinda hosed for the next
-couple of weeks, but coming soon." (see [auth-state-aug-2012][post] at list).
+couple of weeks, but coming soon." (see [post][auth-state-aug-2012] at list).
 
 Authentication depends on three different parts of Derby: as by [cjb-july-2012][]
 
@@ -29,7 +29,7 @@ and later, at September 21, Laszlo Bacsi (@LacKac) shared
 
 
 
-[Carl-Johan Blomqvist][]'s work and [post](https://groups.google.com/forum/#!msg/derbyjs/6CuViVg4p7Q/dKxfuIQQwJAJ "New blog about about authentication and a preview example app")
+Carl-Johan Blomqvist's work and [post](https://groups.google.com/forum/#!msg/derbyjs/6CuViVg4p7Q/dKxfuIQQwJAJ "New blog about about authentication and a preview example app")
 about everyauth usage with Derby.
 
 [Tyler Renelle][] working on Derby-everyauth integration as a part of his

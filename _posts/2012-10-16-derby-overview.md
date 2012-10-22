@@ -71,7 +71,7 @@ title: Overview of Derby's internals
       and *application object* to View constructor exported from ./View.server
       module;
     * exposes derby.settions property to view object via view._derbySettings;
-      view also given access to appModule.filename via _appFilename;
+      view also given access to appModule.filename via `_appFilename`;
     * sets application.{routes,view,ready,render} properties;
     * calls view.render() without parameters on the next tick so that files
       will be cached for the first render (note that view.render()
