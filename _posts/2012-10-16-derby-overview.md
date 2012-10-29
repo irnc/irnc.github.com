@@ -3,7 +3,18 @@ layout: post
 title: Overview of Derby's internals
 ---
 
-# What each Derby module is responsible for?
+## What each Derby module is responsible for?
+
+Update: this post started as a notes on Derby internals, but because of a need
+of such documentation was articulated in a [Derby's issue #92][issue-92], these
+notes will be added directly to the source code as a docco comments, see
+[Derby's pull request #159][pull-159].
+
+So all notes about code will migrate from here to the source code in the near
+future.
+
+[issue-92]: https://github.com/codeparty/derby/issues/92
+[pull-159]: https://github.com/codeparty/derby/pull/159
 
 *   ## derby.js
 
@@ -63,6 +74,8 @@ title: Overview of Derby's internals
     exports and does not use it after it. Is this require intended and serves
     some purpose other then exports check or not?
 
+    See https://github.com/codeparty/derby/issues/157
+
     ### function createApp(appModule)
 
     * merges in EventEmitter's prototype to app's module exports, thus making
@@ -97,9 +110,26 @@ title: Overview of Derby's internals
     * defines application.ready(fn) function, where fn will be called upon
       application object with model as a parameter on racer's ready event.
 
-    TODO: find out who calls derby.init()
+    ### `derby.init(modelBundle, appHash, debug, ns, ctx)`
 
-    derby.init() method's internals:
+    Called from the script from the bottom of a page, see point #13 in the
+    [Pre-defined templates section](http://derbyjs.com/#predefined_templates).
+
+    See `View.prototype._renderScripts` function from `View.server` module to
+    see how that script is generated.
+
+    *modelBundle* is an array.
+
+    *appHash* is a string containing hash of a generated JavaScript application
+    file.
+
+    *debug* is an integer, e.g. `1`.
+
+    *ns* can be an empty string.
+
+    *ctx* can be an empty object.
+
+    Method's internals:
 
     * listens for racer's init and ready events;
     * calls racer.init(modelBundle).
@@ -112,81 +142,23 @@ title: Overview of Derby's internals
     render(ns, ctx) method which is a proxy to view.render(model, ns, ctx). So
     essentially Page object bounds model to view object.
 
+    ### page.render(ns, ctx)
+
+    This method will use the model data as well as an optional context object
+    for rendering.
+
+*   ## refresh.js
+
+    ### autoRefresh()
+
+    This method is used only by `derby.browser` module.
+
+    It listens for specific event on model and socket and reloads page or
+    partially refreshes HTML or CSS.
+
 *   ## refresh.server.js
 
     Exports object containing autoRefresh() method.
-
-*   ## View.js
-
-    Module exports View object constructor.
-
-    ### View(libraries, application)
-
-    Stores passed in libraries array into `view._libraries` and *application
-    object* into `view._appExports` property.
-
-    ### inline
-
-    Each View object, either in browser or server has `inline` method and
-    `_inline` property initialized to empty string by constructor.
-
-    In browser context `inline` is an empty function and `_inline` property is
-    never used. See description of the View.server module about implementation
-    of the `inline` method used in server context.
-
-    ### view.render(model, ns, ctx, silent)
-
-    Alternatively can be called as view.render(model, Object ctx, silent) in
-    that case, ns is assumed to be an empty string.
-
-    Internal workings:
-
-    * assigns passed in model argument to this.model;
-    * sets this.dom._preventUpdates to TRUE;
-    * stores ns and ctx arguments to the this._lastRender object;
-    * TODO: mention what is done here
-    * if silent evaluates to TRUE, stop here;
-    * removes all attributes from `<html>` element in window.document; sets
-      html elements's attributes from rendered root template to document's html
-      element;
-    * replaces body of a window.document with rendered body element;
-    * sets document.title from title view template;
-    * calls this._afterRender(ns, ctx).
-
-    ### view.get (name, ns, ctx)
-
-    If *ns* parameter is omitted it is assumed to be an empty string. Context
-    object is extended using default context. If ctx parameter is omitted,
-    context object will be created entirely from the default context.
-
-    On resulting context object '$fnCtx' property is set to
-    `[view._appExports]`.
-
-    Method returns the result of calling `this._find(name, ns)(ctx)`.
-
-    ### view._find (name, ns, macroAttrs)
-
-    When macroAttrs parameter is not set (as when calling from view.get()
-    method), this method is just a proxy to `view._findItem(name, ns, '_views')`
-    with one addition: `_find()` will throw an 'Can't find view ...' error if
-    return value from call to view._findItem will evaluate to FALSE.
-
-    ### view._findItem(name, ns, prop)
-
-    If ns evaluates to FALSE, just lookup for *name* property in `view[prop]`
-    object and return it, i.e. return undefined it property does not exists.
-
-    If ns is set, try to find item with name prefixed with it walking upwards,
-    e.g. if ns is set to 'x:y:z' and name is 't', lookup will be done for those
-    properties in the order specified: 'x:y:z:t', 'x:y:t', 'x:t', 't'.
-
-    ### ctx = view._beforeRender(ns, ctx)
-
-    Create context object if it is not set, store *ns* to `ctx.$ns`
-
-    Emits 'pre:render' event on application object with context object as a
-    parameter. If `ns` evaluates to TRUE, also emits 'pre:render:*ns*' event
-    with the same context object as a parameter.
 
 *   ## View.server.js
 
@@ -202,38 +174,6 @@ title: Overview of Derby's internals
 
     In a production environment, string representation of a script to inline is
     uglified by uglify-js required from racer's node_modules directory.
-
-    ### view.render(res, model, ctx, ns, resStatusCode, isStatic)
-
-    *res* parameter is used to pass in response object, if not set it will be
-    mocked by *empty response object*.
-
-    *model* must be an instance of `racer["protected"].Model` otherwise empty
-    model object will be used with empty `_commit` and `bundle` methods.
-
-    Rest of the arguments will be assumed to be undefined unless they match the
-    criteria:
-
-    * ctx is of type object
-    * ns is of type string
-    * resStatusCode is of type number
-    * isStatic is of type boolean
-
-    After that arguments normalization view.render will call
-
-    ctx = this._beforeRender(ns, ctx); // defined in the View module
-
-    this._init(model, isStatic, function() { // defined in View.server module
-      view._render(res, model, ns, ctx, isStatic);
-    });
-
-    view._init method calls view._load and when it will be calling back, code
-    in _init will partially mock model with empty implementations and call
-    view._initValues(model) and callback().
-
-    #### view._init
-
-    This method is called only from `render` method.
 
     #### view._load
 
@@ -251,14 +191,9 @@ title: Overview of Derby's internals
     libraries are iterated and `library.view._initValues(model)` is called on
     each.
 
-*   ## eventBinding.js
+    #### `view._renderScripts(...)`
 
-    Parses x-bind definition and adds events to the DOM. Module is used by
-    markup.js to add DOM events from parsed markup.
-
-*   ## markup.js
-
-    Defines parsers for Derby's template markup. Module is used by View.js
+    Called only from `view._render` method.
 
 *   ## Dom.js
 
