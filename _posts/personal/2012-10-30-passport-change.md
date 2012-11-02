@@ -1,5 +1,6 @@
 ---
 layout: post
+category: personal
 title: Опыт смены паспорта
 ---
 

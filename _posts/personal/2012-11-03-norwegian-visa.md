@@ -1,5 +1,6 @@
 ---
 layout: post
+category: personal
 title: Получение норвежской визы с целью деловых поездок
 ---
 

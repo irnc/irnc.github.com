@@ -17,6 +17,18 @@ home_page: true
   {% endfor %}
 </ul>
 
+<h1>Individual entrepreneur in Belarus</h1>
+<p>Notes about being an individual entrepreneur in Belarus (mainly in Russian)</p>
+
+<ul class="posts">
+  {% for post in site.categories.individual-entrepreneur %}
+    <li>
+      <span>{{ post.date | date_to_string }}</span> &raquo;
+      <a href="{{ post.url }}">{{ post.title }}</a>
+    </li>
+  {% endfor %}
+</ul>
+
 <h1>Personal posts (mainly in Russian)</h1>
 
 <ul class="posts">
