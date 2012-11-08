@@ -16,17 +16,6 @@ future.
 [issue-92]: https://github.com/codeparty/derby/issues/92
 [pull-159]: https://github.com/codeparty/derby/pull/159
 
-*   ## derby.js
-
-    Project's main module. Exports object which is prototyped from `racer`
-    module, made pluggable under a name `derby` and decorated with one common
-    plugin (exported from `./component` module) and a plugin exported from one
-    of `./derby.server` or `./derby.browser` modules depending on the execution
-    environment. This object is referenced below as *`derby` object*.
-
-    See [Racer modules overview](/2012/10/16/racer-overview.html) for details
-    regarding Racer and it's `./plugin` module.
-
 *   ## component.js
 
     Exports *component plugin* which is designed to decorate `derby` object.
@@ -89,63 +78,6 @@ future.
     * calls view.render() without parameters on the next tick so that files
       will be cached for the first render (note that view.render()
       implementation differs in server and browser contexts).
-
-*   ## derby.browser.js
-
-    In browser there are only one derby, view, model and page objects and they
-    are stored in propected properties (as defined by Crokford) in this module.
-
-    *Derby's browser plugin* exposes *derby object* to be accessible via
-    `window.DERBY` property and adds `createApp()` and `init()` methods to it.
-
-    Internals of `createApp(appModule)` in *Derby's browser plugin*:
-
-    * merges in EventEmitter's prototype to app's module exports, thus making
-      the *application object* an event emitter/listener;
-    * creates *view object* passing in libraries array from *component plugin*
-      and *application object* to View constructor; view object is stored into
-      derby.view, application.view and to protected property.
-    * setups tracks by calling `tracks.setup(app, createPageFn, onRouteFn)`;
-    * sets view.history to application.history;
-    * defines application.ready(fn) function, where fn will be called upon
-      application object with model as a parameter on racer's ready event.
-
-    ### `derby.init(modelBundle, appHash, debug, ns, ctx)`
-
-    Called from the script from the bottom of a page, see point #13 in the
-    [Pre-defined templates section](http://derbyjs.com/#predefined_templates).
-
-    See `View.prototype._renderScripts` function from `View.server` module to
-    see how that script is generated.
-
-    *modelBundle* is an array.
-
-    *appHash* is a string containing hash of a generated JavaScript application
-    file.
-
-    *debug* is an integer, e.g. `1`.
-
-    *ns* can be an empty string.
-
-    *ctx* can be an empty object.
-
-    Method's internals:
-
-    * listens for racer's init and ready events;
-    * calls racer.init(modelBundle).
-
-    ### Page
-
-    This object's prototype is defined differently for server and browser.
-
-    On browser it is reduced to empty constructor. Resulting Page object has
-    render(ns, ctx) method which is a proxy to view.render(model, ns, ctx). So
-    essentially Page object bounds model to view object.
-
-    ### page.render(ns, ctx)
-
-    This method will use the model data as well as an optional context object
-    for rendering.
 
 *   ## refresh.js
 
