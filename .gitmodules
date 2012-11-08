@@ -1,0 +1,3 @@
+[submodule "3rd-party/timeline-js"]
+	path = 3rd-party/timeline-js
+	url = git://github.com/VeriteCo/TimelineJS.git
