@@ -11,14 +11,16 @@ layout: default
   {{ page.title }}
 </h1>
 <span>
-  {{ page.date | date_to_string }}
+  Note started on: {{ page.date | date_to_string }}
 </span>
 
-{{ content }}
+<div class="content">
+  {{ content }}
+</div>
 
 <hr />
 
-Can you help with the post?
+Can you help with this post?
 
 {% if page.issue %}
   Comment on an <a href="{{ issues }}/{{ page.issue }}">attached issue</a>
