@@ -14,4 +14,4 @@ Site is published with [GitHub Pages][] at http://irnc.github.com.
 
 ## How to preview site locally
 
-`jekyll --auto --server`
+Run `jekyll --auto --server` in shell. Open [http://localhost:4000][].
