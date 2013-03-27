@@ -1,5 +1,6 @@
 ---
 layout: post
+category: derby
 title: How to create a Derby component library
 ---
 
